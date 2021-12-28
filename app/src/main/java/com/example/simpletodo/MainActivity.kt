@@ -8,10 +8,14 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import org.apache.commons.io.FileUtils
+import java.io.File
+import java.io.IOException
+import java.nio.charset.Charset
 
 class MainActivity : AppCompatActivity() {
 
-    val listOfTasks = mutableListOf<String>()
+    var listOfTasks = mutableListOf<String>()
     lateinit var adapter : TaskItemAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,12 +27,13 @@ class MainActivity : AppCompatActivity() {
                 listOfTasks.removeAt(position)
                 // 2. Notify the adapter that our data set has changed
                 adapter.notifyDataSetChanged()
+
+                saveItems()
             }
 
         }
 
-        listOfTasks.add("Do laundry")
-        listOfTasks.add("Go shopping")
+        loadItems()
 
         // Look up recyclerView
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
@@ -58,6 +63,38 @@ class MainActivity : AppCompatActivity() {
 
             // 3. Reset text field
             inputTextField.setText("")
+
+            saveItems()
         }
     }
+
+    // Save the data the user has inputted
+    // Save data by writing and reading from a file
+
+    // Create a method to get the data file
+    fun getDataFile() : File {
+
+        // Every line is going to represent a specific task in our list of tasks
+        return File(filesDir, "data.txt")
+    }
+    // Load the items by reading every line in the data file
+    fun loadItems() {
+        try {
+            listOfTasks = FileUtils.readLines(getDataFile(), Charset.defaultCharset())
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
+        }
+
+    }
+
+    // Save items by writing them in our data file
+    fun saveItems() {
+        try {
+            FileUtils.writeLines(getDataFile(), listOfTasks)
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
+        }
+
+    }
+
 }
