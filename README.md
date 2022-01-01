@@ -1,10 +1,10 @@
-# Project 1 - *SimpleToDo*
+# Project 1 - *EasyDo*
 
-**Name of your app** is an android app that allows building a todo list and basic todo items management functionality including adding new items, editing and deleting an existing item.
+**EasyDo** is an android app that allows building a todo list and basic todo items management functionality including adding new items, editing and deleting an existing item.
 
 Submitted by: **Neil Jasani**
 
-Time spent: **4** hours spent in total
+Time spent: **4-5** hours spent in total
 
 ## User Stories
 
