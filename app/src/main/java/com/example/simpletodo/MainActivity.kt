@@ -1,5 +1,6 @@
 package com.example.simpletodo
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -17,34 +18,42 @@ class MainActivity : AppCompatActivity() {
 
     var listOfTasks = mutableListOf<String>()
     lateinit var adapter : TaskItemAdapter
+    val REQUEST_CODE = 20
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         val onLongClickListener = object : TaskItemAdapter.OnLongClickListener {
             override fun onItemLongClicked(position: Int) {
                 // 1. Remove the item from the list
                 listOfTasks.removeAt(position)
                 // 2. Notify the adapter that our data set has changed
                 adapter.notifyDataSetChanged()
-
                 saveItems()
             }
+        }
 
+        val onClickListener = object : TaskItemAdapter.OnClickListener {
+            override fun onItemClicked(position: Int) {
+                val i = Intent(this@MainActivity, EditTaskActivity::class.java)
+                i.putExtra("text", listOfTasks[position].toString())
+                i.putExtra("key", position)
+                startActivityForResult(i, REQUEST_CODE)
+            }
         }
 
         loadItems()
 
-        // Look up recyclerView
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         // Create adapter passing in the sample user data
-        adapter = TaskItemAdapter(listOfTasks, onLongClickListener)
+        adapter = TaskItemAdapter(listOfTasks, onLongClickListener, onClickListener)
         // Attach the adapter to the recyclerview to populate items
         recyclerView.adapter = adapter
         // Set layout manager to position the items
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        /*
+        /**
          Set up the button and input field, so that the user can enter a task
          */
 
@@ -52,31 +61,40 @@ class MainActivity : AppCompatActivity() {
 
         // Get a reference to the button and set an onClickListener
         findViewById<Button>(R.id.button).setOnClickListener {
-            // 1. Grab the text the user has inputted into @id/addTaskField
+            // Grab the text the user has inputted into @id/addTaskField
             val userInputtedTask = inputTextField.text.toString()
-
-            // 2. Add the string to our mutableList of tasks: listOfTasks
             listOfTasks.add(userInputtedTask)
-
-            // Notify the data adapter that our data has updated (so RecyclerView can update too)
             adapter.notifyItemInserted(listOfTasks.size - 1)
 
-            // 3. Reset text field
-            inputTextField.setText("")
+            inputTextField.setText("") // Reset text field
 
             saveItems()
         }
     }
 
-    // Save the data the user has inputted
-    // Save data by writing and reading from a file
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        // REQUEST_CODE is defined above
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+            // Extract text and position of item in list from 'data'
+            val newText = data?.getExtras()?.getString("text")
+            val pos = data?.getExtras()?.getInt("key", 0)
+            listOfTasks[pos!!] = newText.toString()
+            adapter.notifyDataSetChanged()
+            saveItems()
+        }
+    }
+
+    /**
+     * Data persistence using a text file
+     */
 
     // Create a method to get the data file
     fun getDataFile() : File {
-
         // Every line is going to represent a specific task in our list of tasks
         return File(filesDir, "data.txt")
     }
+
     // Load the items by reading every line in the data file
     fun loadItems() {
         try {
@@ -84,7 +102,6 @@ class MainActivity : AppCompatActivity() {
         } catch (ioException: IOException) {
             ioException.printStackTrace()
         }
-
     }
 
     // Save items by writing them in our data file
@@ -94,7 +111,6 @@ class MainActivity : AppCompatActivity() {
         } catch (ioException: IOException) {
             ioException.printStackTrace()
         }
-
     }
 
 }
